@@ -52,6 +52,7 @@ void setMode(eModes mode);
 void setModeDesc(eModesDesc modeDesc,Level level,int * round);
 void move(char string[],int length,int sPoint,int round);
 void setStartRound(eModesDesc modeDesc,Level level,int * round);
+void clearSecondRow();
 int strlen(	const char *str);
 void clearScreen();
 void main()
@@ -94,8 +95,17 @@ void main()
            {
                level=SLOW;
            }
-        if(SW3())rotate=1; // set the rotation -sw3
-        else rotate=0;
+        if(SW3())
+        {
+            if(rotate==0)clearSecondRow();
+            rotate=1;
+        // set the rotation -sw3
+        }
+        else 
+        {
+            if(rotate==1)clearSecondRow();
+            rotate=0;
+        }
         if(SW6())
         {
           if(repeat!=6)
@@ -208,7 +218,7 @@ void main()
                     }
                 }
             }
-            for(;j<((100+i)*delay[level]*250);j++);
+            for(;j<((100+i)*delay[level]*500);j++);
         }
         
     }
@@ -217,7 +227,7 @@ void main()
     for(int y=0;y<100000;y++)
     {
     setModeDesc(EXIT,level,&round);
-    for(int x=0;x<250000;x++);
+    for(int x=0;x<2500000;x++);
     }
 }
 
@@ -323,8 +333,33 @@ void setModeDesc(eModesDesc modeDesc,Level level,int * round)
 void setStartRound(eModesDesc modeDesc,Level level,int * round)//generates the correct round to start the cycle
 //sliding to the right and cycling,as desribed in the requirements.
 {
-   if(level==SLOW)*round=strlen(ModesDescSlow[modeDesc]);//set the right index for the illusion
-   else *round=strlen(ModesDescFast[modeDesc]);
+   int length;
+   if(level==SLOW)length=strlen(ModesDescSlow[modeDesc]);//set the right index for the illusion
+   else length=strlen(ModesDescFast[modeDesc]);
+   if(length<rowSize)
+   {
+       *round=length;
+   }
+   else if(length>rowSize)
+   {
+       *round=length-(rowSize+1);
+   }
+   else *round=0;
+   
+}
+void clearSecondRow()// cleaning the second row after roration , might remind some pieces by switching.
+{
+    setControl();
+    PORTE= secondRowStart;//control code.
+    burn();
+    busy();
+    setData();
+    for(int i=0;i<rowSize;i++)
+    {
+        PORTE='_';
+        burn();
+        busy();
+    }
 }
 void clearScreen()
 {
